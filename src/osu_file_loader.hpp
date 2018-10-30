@@ -3,21 +3,6 @@
 #include <string>
 #include <unordered_map>
 
-enum NoteType
-{
-    Circle,
-    Slider,
-    Spinner
-};
-
-enum NoteEffect
-{
-    NoneEffect,
-    Whistle,
-    Finish,
-    Clap
-};
-
 enum Tag
 {
     NoneTag,
@@ -30,23 +15,20 @@ enum Tag
     HitObjects
 };
 
-typedef struct
-{
-    int x;
-    int y;
-    int vx;
-    int vy;
-
-    NoteType type;
-    NoteEffect effect;
-} Note;
-
 class OsuFileLoader {
 public:
     OsuFileLoader(const std::string&);
     ~OsuFileLoader();
 
     void load();
+    std::unordered_map<std::string, std::string> getGeneral();
+    std::unordered_map<std::string, std::string> getEditor();
+    std::unordered_map<std::string, std::string> getMetadata();
+    std::unordered_map<std::string, std::string> getDifficulty();
+    std::unordered_map<std::string, std::string> getEvents();
+    std::vector<std::vector<double>> getTimingPoints();
+    std::vector<std::vector<double>> getHitObjects();
+
 private:
     std::string fileName_;
     std::unordered_map<std::string, std::string> general_;
