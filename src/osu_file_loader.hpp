@@ -12,7 +12,7 @@ enum NoteType
 
 enum NoteEffect
 {
-    None,
+    NoneEffect,
     Whistle,
     Finish,
     Clap
@@ -20,7 +20,7 @@ enum NoteEffect
 
 enum Tag
 {
-    None,
+    NoneTag,
     General,
     Editor,
     Metadata,
@@ -54,8 +54,9 @@ private:
     std::unordered_map<std::string, std::string> metadata_;
     std::unordered_map<std::string, std::string> difficulty_;
     std::unordered_map<std::string, std::string> events_;
-    std::unordered_map<std::string, std::string> timingPoints_;
-    std::unordered_map<std::string, std::string> hitObjects_;
+    std::vector<std::vector<double>> timingPoints_;
+    std::vector<std::vector<double>> hitObjects_;
 
     Tag analyzeTag(const std::string&);
+    bool isComment(const std::string&);
 };

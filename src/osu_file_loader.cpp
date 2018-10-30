@@ -1,11 +1,17 @@
 #include "osu_file_loader.hpp"
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <regex>
+
+constexpr int maxTimingPoints = 50000;
+constexpr int maHitObjects    = 50000;
 
 OsuFileLoader::OsuFileLoader(const std::string &fileName)
     : fileName_(fileName)
 {
+    timingPoints_.resize(maxTimingPoints);
+    hitObjects_.resize(maHitObjects);
 }
 
 OsuFileLoader::~OsuFileLoader()
@@ -14,7 +20,7 @@ OsuFileLoader::~OsuFileLoader()
 
 void OsuFileLoader::load()
 {
-    std::ifstream ifs(this->fileName_);
+    std::ifstream ifs(fileName_);
 
     if (ifs.fail())
     {
@@ -23,32 +29,90 @@ void OsuFileLoader::load()
     }
 
     std::string s;
-    while (getline(ifs, s))
+    while (std::getline(ifs, s))
     {
-        std::unordered_map<std::string, std::string> map;
+        if (s == "" || isComment(s))
+        {
+            continue;
+        }
+
+        std::smatch match;
+        std::regex reColonSplit("(.*?):\\s*(.*?)");
+        std::regex reCommaSplit("([\\d|\\.]*?),*");
 
         switch (analyzeTag(s))
         {
         case General:
-            map = this->general_;
+            do
+            {
+                general_[match[1]] = match[2];
+                std::getline(ifs, s);
+            }while(regex_match(s, match, reColonSplit));
             break;
-        case Editor :
-            map = this->editor_;
+        case Editor:
+            do
+            {
+                editor_[match[1]] = match[2];
+                std::getline(ifs, s);
+            }while(regex_match(s, match, reColonSplit));
             break;
         case Metadata:
-            map = this->metadata_;
+            do
+            {
+                metadata_[match[1]] = match[2];
+                std::getline(ifs, s);
+            }while(regex_match(s, match, reColonSplit));
             break;
         case Difficulty:
-            map = this->difficulty_;
+            do
+            {
+                difficulty_[match[1]] = match[2];
+                std::getline(ifs, s);
+            }while(regex_match(s, match, reColonSplit));
             break;
         case Events:
-            map = this->events_;
             break;
         case TimingPoints:
-            map = this->timingPoints_;
+            for (int i = 0; std::getline(ifs, s); ++i)
+            {
+                if (s == "")
+                {
+                    break;
+                }
+
+                if (isComment(s))
+                {
+                    continue;
+                }
+
+                std::stringstream ss{s};
+                timingPoints_[i].reserve(10);
+                while (std::getline(ss, s, ','))
+                {
+                    timingPoints_[i].push_back(std::stod(s));
+                }
+            }
             break;
         case HitObjects:
-            map = this->hitObjects_;
+            for (int i = 0; std::getline(ifs, s); ++i)
+            {
+                if (s == "")
+                {
+                    break;
+                }
+
+                if (isComment(s))
+                {
+                    continue;
+                }
+
+                std::stringstream ss{s};
+                hitObjects_[i].reserve(10);
+                while (std::getline(ss, s, ','))
+                {
+                    hitObjects_[i].push_back(std::stod(s));
+                }
+            }
             break;
         default:
             break;
@@ -56,51 +120,56 @@ void OsuFileLoader::load()
     }
 }
 
+bool OsuFileLoader::isComment(const std::string &s)
+{
+    return (s.length() >= 2) && (s[0] == '/') && (s[1] == '/');
+}
+
 Tag OsuFileLoader::analyzeTag(const std::string &s)
 {
     std::smatch match;
 
-    std::regex re("\[General\]");
-    if(regex_match(s, match, re))
+    std::regex reGeneral("\\[General\\]");
+    if(regex_match(s, match, reGeneral))
     {
         return Tag::General;
     }
 
-    std::regex re("\[Editor\]");
-    if(regex_match(s, match, re))
+    std::regex reEditor("\\[Editor\\]");
+    if(regex_match(s, match, reEditor))
     {
         return Tag::Editor;
     }
 
-    std::regex re("\[Metadata\]");
-    if(regex_match(s, match, re))
+    std::regex reMetadata("\\[Metadata\\]");
+    if(regex_match(s, match, reMetadata))
     {
         return Tag::Metadata;
     }
 
-    std::regex re("\[Difficulty\]");
-    if(regex_match(s, match, re))
+    std::regex reDifficulty("\\[Difficulty\\]");
+    if(regex_match(s, match, reDifficulty))
     {
         return Tag::Difficulty;
     }
 
-    std::regex re("\[Events\]");
-    if(regex_match(s, match, re))
+    std::regex reEvents("\\[Events\\]");
+    if(regex_match(s, match, reEvents))
     {
         return Tag::Events;
     }
 
-    std::regex re("\[TimingPoints\]");
-    if(regex_match(s, match, re))
+    std::regex reTimingPoints("\\[TimingPoints\\]");
+    if(regex_match(s, match, reTimingPoints))
     {
         return Tag::TimingPoints;
     }
 
-    std::regex re("\[HitObjects\]");
-    if(regex_match(s, match, re))
+    std::regex reHitObjects("\\[HitObjects\\]");
+    if(regex_match(s, match, reHitObjects))
     {
         return Tag::HitObjects;
     }
 
-    return Tag::None;
+    return Tag::NoneTag;
 }
