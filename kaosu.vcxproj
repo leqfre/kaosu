@@ -151,9 +151,13 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\osu_file_loader.cpp" />
+    <ClCompile Include="src\resource_loader.cpp" />
+    <ClCompile Include="src\taiko.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\osu_file_loader.hpp" />
+    <ClInclude Include="src\resource_loader.hpp" />
+    <ClInclude Include="src\taiko.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
