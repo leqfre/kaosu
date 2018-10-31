@@ -21,13 +21,13 @@ public:
     ~OsuFileLoader();
 
     void load();
-    std::unordered_map<std::string, std::string> getGeneral();
-    std::unordered_map<std::string, std::string> getEditor();
-    std::unordered_map<std::string, std::string> getMetadata();
-    std::unordered_map<std::string, std::string> getDifficulty();
-    std::unordered_map<std::string, std::string> getEvents();
-    std::vector<std::vector<double>> getTimingPoints();
-    std::vector<std::vector<double>> getHitObjects();
+    std::unordered_map<std::string, std::string> getGeneral() const;
+    std::unordered_map<std::string, std::string> getEditor() const;
+    std::unordered_map<std::string, std::string> getMetadata() const;
+    std::unordered_map<std::string, std::string> getDifficulty() const;
+    std::unordered_map<std::string, std::string> getEvents() const;
+    std::vector<std::vector<double>> getTimingPoints() const;
+    std::vector<std::vector<double>> getHitObjects() const;
 
 private:
     std::string fileName_;
@@ -39,6 +39,6 @@ private:
     std::vector<std::vector<double>> timingPoints_;
     std::vector<std::vector<double>> hitObjects_;
 
-    Tag analyzeTag(const std::string&);
-    bool isComment(const std::string&);
+    Tag analyzeTag(const std::string&) const;
+    bool isComment(const std::string&) const;
 };

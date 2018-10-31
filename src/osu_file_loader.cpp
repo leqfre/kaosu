@@ -128,12 +128,12 @@ void OsuFileLoader::load()
     }
 }
 
-bool OsuFileLoader::isComment(const std::string &s)
+bool OsuFileLoader::isComment(const std::string &s) const
 {
     return (s.length() >= 2) && (s[0] == '/') && (s[1] == '/');
 }
 
-Tag OsuFileLoader::analyzeTag(const std::string &s)
+Tag OsuFileLoader::analyzeTag(const std::string &s) const
 {
     std::smatch match;
 
@@ -182,37 +182,37 @@ Tag OsuFileLoader::analyzeTag(const std::string &s)
     return Tag::NoneTag;
 }
 
-std::unordered_map<std::string, std::string> OsuFileLoader::getGeneral()
+std::unordered_map<std::string, std::string> OsuFileLoader::getGeneral() const
 {
     return general_;
 }
 
-std::unordered_map<std::string, std::string> OsuFileLoader::getEditor()
+std::unordered_map<std::string, std::string> OsuFileLoader::getEditor() const
 {
     return editor_;
 }
 
-std::unordered_map<std::string, std::string> OsuFileLoader::getMetadata()
+std::unordered_map<std::string, std::string> OsuFileLoader::getMetadata() const
 {
     return metadata_;
 }
 
-std::unordered_map<std::string, std::string> OsuFileLoader::getDifficulty()
+std::unordered_map<std::string, std::string> OsuFileLoader::getDifficulty() const
 {
     return difficulty_;
 }
 
-std::unordered_map<std::string, std::string> OsuFileLoader::getEvents()
+std::unordered_map<std::string, std::string> OsuFileLoader::getEvents() const
 {
     return events_;
 }
 
-std::vector<std::vector<double>> OsuFileLoader::getTimingPoints()
+std::vector<std::vector<double>> OsuFileLoader::getTimingPoints() const
 {
     return timingPoints_;
 }
 
-std::vector<std::vector<double>> OsuFileLoader::getHitObjects()
+std::vector<std::vector<double>> OsuFileLoader::getHitObjects() const
 {
     return hitObjects_;
 }
