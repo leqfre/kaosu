@@ -9,22 +9,17 @@ ResourceLoader *ResourceLoader::getInstance()
 
 void ResourceLoader::load()
 {
-    donImage_   = LoadGraph("./rsc/don.png");
-    katsuImage_ = LoadGraph("./rsc/katsu.png");
-    judgeImage_ = LoadGraph("./rsc/judge_circle.png");
+    taikoNoteImages_[0] = LoadGraph("./rsc/don.png");
+    taikoNoteImages_[1] = LoadGraph("./rsc/katsu.png");
+    judgeCircleImage_ = LoadGraph("./rsc/judge_circle.png");
 }
 
-int ResourceLoader::getDonImage() const
+std::array<int, taikoNoteTypes> ResourceLoader::getTaikoNoteImages() const
 {
-    return donImage_;
+    return taikoNoteImages_;
 }
 
-int ResourceLoader::getKatsuImage() const
+int ResourceLoader::getJudgeCircleImage() const
 {
-    return katsuImage_;
-}
-
-int ResourceLoader::getJudgeImage() const
-{
-    return judgeImage_;
+    return judgeCircleImage_;
 }

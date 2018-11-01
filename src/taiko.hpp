@@ -14,10 +14,6 @@ public:
 
 private:
     ResourceLoader *rl_;
-    std::unique_ptr<OsuFileLoader> ofl_;
-    std::vector<std::vector<double>> hitObjects_;
-
-    double bpm_;
-    double offset_;
+    std::unique_ptr<Beatmap> bm_;
     double position_;
 };

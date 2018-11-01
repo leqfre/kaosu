@@ -1,4 +1,10 @@
 #pragma once
+#include <array>
+
+namespace
+{
+    constexpr int taikoNoteTypes = 4;
+}
 
 class ResourceLoader
 {
@@ -9,15 +15,13 @@ public:
     static ResourceLoader *getInstance();
     void load();
 
-    int getDonImage() const;
-    int getKatsuImage() const;
-    int getJudgeImage() const;
+    std::array<int, taikoNoteTypes> getTaikoNoteImages() const;
+    int getJudgeCircleImage() const;
 
 private:
     ResourceLoader() {};
     ~ResourceLoader() {};
 
-    int donImage_;
-    int katsuImage_;
-    int judgeImage_;
+    std::array<int, taikoNoteTypes> taikoNoteImages_;
+    int judgeCircleImage_;
 };

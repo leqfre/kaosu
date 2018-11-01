@@ -13,14 +13,15 @@ OsuFileLoader::~OsuFileLoader()
 {
 }
 
-void OsuFileLoader::load()
+std::unique_ptr<Beatmap> OsuFileLoader::load()
 {
     std::ifstream ifs(fileName_);
+    std::unique_ptr<Beatmap> bm = std::make_unique<Beatmap>();
 
     if (ifs.fail())
     {
         std::cerr << "failed to open file" << std::endl;
-        return;
+        return nullptr;
     }
 
     std::string s;
@@ -33,14 +34,13 @@ void OsuFileLoader::load()
 
         std::smatch match;
         std::regex reColonSplit("(.*?):\\s*(.*?)");
-        std::regex reCommaSplit("([\\d|\\.]*?),*");
 
         switch (analyzeTag(s))
         {
         case General:
             do
             {
-                general_[match[1]] = match[2];
+                bm->general[match[1]] = match[2];
                 std::getline(ifs, s);
             } while (regex_match(s, match, reColonSplit));
             break;
@@ -48,7 +48,7 @@ void OsuFileLoader::load()
         case Editor:
             do
             {
-                editor_[match[1]] = match[2];
+                bm->editor[match[1]] = match[2];
                 std::getline(ifs, s);
             } while (regex_match(s, match, reColonSplit));
             break;
@@ -56,7 +56,7 @@ void OsuFileLoader::load()
         case Metadata:
             do
             {
-                metadata_[match[1]] = match[2];
+                bm->metadata[match[1]] = match[2];
                 std::getline(ifs, s);
             } while (regex_match(s, match, reColonSplit));
             break;
@@ -64,7 +64,7 @@ void OsuFileLoader::load()
         case Difficulty:
             do
             {
-                difficulty_[match[1]] = match[2];
+                bm->difficulty[match[1]] = match[2];
                 std::getline(ifs, s);
             } while (regex_match(s, match, reColonSplit));
             break;
@@ -93,7 +93,7 @@ void OsuFileLoader::load()
                     timingPoint.push_back(std::stod(s));
                 }
 
-                timingPoints_.push_back(timingPoint);
+                bm->timingPoints.push_back(timingPoint);
             }
             break;
 
@@ -115,10 +115,14 @@ void OsuFileLoader::load()
 
                 while (std::getline(ss, s, ','))
                 {
+                    if (s.find(':') != std::string::npos)
+                    {
+                        break;
+                    }
                     hitObject.push_back(std::stod(s));
                 }
 
-                hitObjects_.push_back(hitObject);
+                bm->hitObjects.push_back(hitObject);
             }
             break;
 
@@ -126,6 +130,10 @@ void OsuFileLoader::load()
             break;
         }
     }
+
+    bm->bpm = (1000 * 60) / bm->timingPoints[0][1];
+
+    return bm;
 }
 
 bool OsuFileLoader::isComment(const std::string &s) const
@@ -180,39 +188,4 @@ Tag OsuFileLoader::analyzeTag(const std::string &s) const
     }
 
     return Tag::NoneTag;
-}
-
-std::unordered_map<std::string, std::string> OsuFileLoader::getGeneral() const
-{
-    return general_;
-}
-
-std::unordered_map<std::string, std::string> OsuFileLoader::getEditor() const
-{
-    return editor_;
-}
-
-std::unordered_map<std::string, std::string> OsuFileLoader::getMetadata() const
-{
-    return metadata_;
-}
-
-std::unordered_map<std::string, std::string> OsuFileLoader::getDifficulty() const
-{
-    return difficulty_;
-}
-
-std::unordered_map<std::string, std::string> OsuFileLoader::getEvents() const
-{
-    return events_;
-}
-
-std::vector<std::vector<double>> OsuFileLoader::getTimingPoints() const
-{
-    return timingPoints_;
-}
-
-std::vector<std::vector<double>> OsuFileLoader::getHitObjects() const
-{
-    return hitObjects_;
 }
