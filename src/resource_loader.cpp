@@ -11,6 +11,10 @@ void ResourceLoader::load()
 {
     taikoNoteImages_[0] = LoadGraph("./rsc/don.png");
     taikoNoteImages_[1] = LoadGraph("./rsc/katsu.png");
+
+    taikoHitEffectImages_[0] = LoadGraph("./rsc/taiko-hit300.png");
+    taikoHitEffectImages_[1] = LoadGraph("./rsc/taiko-hit100.png");
+
     judgeCircleImage_ = LoadGraph("./rsc/judge_circle.png");
 
     taikoHitSounds_[0] = LoadSoundMem("./rsc/taiko-normal-hitfinish.wav");
@@ -20,6 +24,11 @@ void ResourceLoader::load()
 std::array<int, taikoNoteTypes> ResourceLoader::getTaikoNoteImages() const
 {
     return taikoNoteImages_;
+}
+
+std::array<int, taikoNoteTypes> ResourceLoader::getTaikoHitEffectImages() const
+{
+    return taikoHitEffectImages_;
 }
 
 int ResourceLoader::getJudgeCircleImage() const

@@ -1,6 +1,7 @@
 #pragma once
 #include "DxLib.h"
 #include <memory>
+#include <chrono>
 #include "resource_loader.hpp"
 #include "osu_file_loader.hpp"
 
@@ -23,8 +24,12 @@ public:
 private:
     ResourceLoader *rl_;
     std::unique_ptr<Beatmap> bm_;
-    double position_;
+
+    std::chrono::system_clock::time_point start_;
 
     ProcessSequence process_;
     std::string path_;
+
+    double position_;
+    int targetNote_;
 };
