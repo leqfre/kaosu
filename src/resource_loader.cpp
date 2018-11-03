@@ -14,6 +14,7 @@ void ResourceLoader::load()
 
     taikoHitEffectImages_[0] = LoadGraph("./rsc/taiko-hit300.png");
     taikoHitEffectImages_[1] = LoadGraph("./rsc/taiko-hit100.png");
+    taikoHitEffectImages_[2] = LoadGraph("./rsc/taiko-hit0.png");
 
     judgeCircleImage_ = LoadGraph("./rsc/judge_circle.png");
 

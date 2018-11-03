@@ -3,13 +3,13 @@
 #include <memory>
 #include <chrono>
 #include "resource_loader.hpp"
+#include "game_controller.hpp"
 #include "osu_file_loader.hpp"
 
-enum ProcessSequence
+enum NoteType
 {
-    None,
-    Load,
-    Play
+    Don,
+    Katsu
 };
 
 class Taiko
@@ -22,14 +22,16 @@ public:
     void update();
 
 private:
+    void judge(double, NoteType);
+
     ResourceLoader *rl_;
+    GameController *gc_;
     std::unique_ptr<Beatmap> bm_;
 
     std::chrono::system_clock::time_point start_;
 
-    ProcessSequence process_;
     std::string path_;
 
     double position_;
-    int targetNote_;
+    int targetNoteIndex_;
 };

@@ -6,7 +6,7 @@
 #include <regex>
 #include "utils.hpp"
 
-OsuFileLoader::OsuFileLoader(const std::string &path)
+OsuFileLoader::OsuFileLoader(const std::string& path)
     : path_(path)
 {
 }
@@ -142,12 +142,12 @@ std::unique_ptr<Beatmap> OsuFileLoader::load()
     return bm;
 }
 
-bool OsuFileLoader::isComment(const std::string &s) const
+bool OsuFileLoader::isComment(const std::string& s) const
 {
     return (s.length() >= 2) && (s[0] == '/') && (s[1] == '/');
 }
 
-Tag OsuFileLoader::analyzeTag(const std::string &s) const
+Tag OsuFileLoader::analyzeTag(const std::string& s) const
 {
     std::smatch match;
 

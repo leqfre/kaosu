@@ -1,8 +1,8 @@
 #include "DxLib.h"
 #include <memory>
-#include <chrono>
 #include "utils.hpp"
 #include "resource_loader.hpp"
+#include "game_controller.hpp"
 #include "osu_file_loader.hpp"
 #include "taiko.hpp"
 
@@ -26,6 +26,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     auto taiko = std::make_unique<Taiko>(fileNames[0]);
     taiko->load();
 
+    auto *gc = GameController::getInstance();
+
     while (ProcessMessage() == 0)
     {
         ClearDrawScreen();
@@ -33,6 +35,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
         /*************************************************************/
 
+        if (gc->getKey(KEY_INPUT_Q) == 1)
+        {
+            taiko->load();
+        }
+
+        gc->update();
         taiko->update();
         // DrawFormatString(0, 0, GetColor(0, 255, 0), "%s", fileNames[0]);
 

@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\game_controller.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\osu_file_loader.cpp" />
     <ClCompile Include="src\resource_loader.cpp" />
@@ -156,6 +157,7 @@
     <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\game_controller.hpp" />
     <ClInclude Include="src\osu_file_loader.hpp" />
     <ClInclude Include="src\resource_loader.hpp" />
     <ClInclude Include="src\taiko.hpp" />

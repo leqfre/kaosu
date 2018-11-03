@@ -7,110 +7,99 @@ namespace
     constexpr int oneFrameMs = 1000 / 60;
 
     constexpr int perfectJudgeMs = oneFrameMs * (1 + judgeLevel);
-    constexpr int goodJudgeMs    = oneFrameMs * (2 + judgeLevel);
-    constexpr int badJudgeMs     = oneFrameMs * (3 + judgeLevel);
+    constexpr int goodJudgeMs    = oneFrameMs * (4 + judgeLevel);
+    constexpr int badJudgeMs     = oneFrameMs * 10;
 }
 
 Taiko::Taiko(const std::string& song)
-    : rl_(ResourceLoader::getInstance())
+    : rl_(ResourceLoader::getInstance()), gc_(GameController::getInstance()), path_("./songs/" + song)
 {
-    process_ = Load;
-    path_ = "./songs/" + song;
 }
 
 Taiko::~Taiko()
 {
 }
 
-int key[256];
-
-int updateKey()
-{
-    char tmpKey[256];
-    GetHitKeyStateAll(tmpKey);
-
-    for (int i = 0; i < 256; ++i)
-    { 
-        if (tmpKey[i] != 0)
-        {
-            key[i]++;
-        }
-        else
-        {
-            key[i] = 0;
-        }
-    }
-    return 0;
-}
-
 void Taiko::load()
 {
     bm_ = std::make_unique<OsuFileLoader>(path_)->load();
-    bm_->offset = 130;
-    PlaySoundMem(bm_->music, DX_PLAYTYPE_BACK);
+    bm_->offset = 400;
+    //PlaySoundMem(bm_->music, DX_PLAYTYPE_BACK);
 
     start_ = std::chrono::system_clock::now();
 
     position_ = 0;
-    targetNote_ = 0;
+    targetNoteIndex_ = 0;
 }
 
 void Taiko::update()
 {
-    updateKey();
-
-    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - start_).count() / 1000.0;
-    auto elapsed_ = static_cast<double>(ms);
-
     DrawFormatString(0, 0, GetColor(0, 255, 0), "%d", bm_->hitObjects.size());
-    DrawFormatString(0,16, GetColor(0, 255, 0), "%lf", elapsed_);
     DrawFormatString(0,32, GetColor(0, 255, 0), "%lf", bm_->hitObjects[0][2]);
-    DrawFormatString(0,48, GetColor(0, 255, 0), "%d", targetNote_);
+    DrawFormatString(0,48, GetColor(0, 255, 0), "%d", targetNoteIndex_);
 
+    auto elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_).count());
 
-    if (bm_->hitObjects[targetNote_][2] + (badJudgeMs / 2) < elapsed_)
+    if (bm_->hitObjects[targetNoteIndex_][2] + bm_->offset + (badJudgeMs / 2) < elapsed)
     {
-        //bm_->hitObjects.erase(bm_->hitObjects.begin());
-        ++targetNote_;
+        ++targetNoteIndex_;
     }
 
-    if (key[KEY_INPUT_F] == 1 || key[KEY_INPUT_J] == 1)
+    if (gc_->getKey(KEY_INPUT_F) == 1 || gc_->getKey(KEY_INPUT_J) == 1)
     {
         PlaySoundMem(rl_->getTaikoHitSounds()[0], DX_PLAYTYPE_BACK);
-
-        if (std::abs(bm_->hitObjects[targetNote_][2] - elapsed_) < (perfectJudgeMs / 2))
-        {
-            bm_->hitObjects.erase(bm_->hitObjects.begin() + targetNote_);
-            DrawGraph(34, 234, rl_->getTaikoHitEffectImages()[0], TRUE);
-        }
-        else if (std::abs(bm_->hitObjects[targetNote_][2] - elapsed_) < (goodJudgeMs / 2))
-        {
-            bm_->hitObjects.erase(bm_->hitObjects.begin() + targetNote_);
-            DrawGraph(34, 234, rl_->getTaikoHitEffectImages()[1], TRUE);
-        }
+        judge(elapsed, Don);
     }
 
-    if (key[KEY_INPUT_D] == 1 || key[KEY_INPUT_K] == 1)
+    if (gc_->getKey(KEY_INPUT_D) == 1 || gc_->getKey(KEY_INPUT_K) == 1)
     {
         PlaySoundMem(rl_->getTaikoHitSounds()[1], DX_PLAYTYPE_BACK);
-
-        if (std::abs(bm_->hitObjects[targetNote_][2] - elapsed_) < (perfectJudgeMs / 2))
-        {
-            bm_->hitObjects.erase(bm_->hitObjects.begin() + targetNote_);
-            DrawGraph(34, 234, rl_->getTaikoHitEffectImages()[0], TRUE);
-        }
-        else if (std::abs(bm_->hitObjects[targetNote_][2] - elapsed_) < (goodJudgeMs / 2))
-        {
-            bm_->hitObjects.erase(bm_->hitObjects.begin() + targetNote_);
-            DrawGraph(34, 234, rl_->getTaikoHitEffectImages()[1], TRUE);
-        }
+        judge(elapsed, Katsu);
     }
 
     DrawGraph(100, 300, rl_->getJudgeCircleImage(), TRUE);
 
     for (int i = 0; i < (signed) bm_->hitObjects.size(); ++i)
     {
-        DrawGraph((int) (bm_->offset + bm_->hitObjects[i][2] * 1.6 + position_), 300, bm_->hitObjects[i][4] == 0 ? rl_->getTaikoNoteImages()[0] : rl_->getTaikoNoteImages()[1], TRUE);
+        int type = bm_->hitObjects[i][4] == 0 ? rl_->getTaikoNoteImages()[0] : rl_->getTaikoNoteImages()[1];
+        DrawGraph((int) (bm_->offset + bm_->hitObjects[i][2] * 1.6 + position_ + 300), 300, type, TRUE);
     }
     position_ -= 26.7;
+}
+
+void Taiko::judge(double elapsed, NoteType type)
+{
+    auto targetNoteType = bm_->hitObjects[targetNoteIndex_][4];
+
+    if (type == Don && targetNoteType != 0)
+    {
+        return;
+    }
+
+    if (type == Katsu && targetNoteType == 0)
+    {
+        return;
+    }
+
+    auto diff = std::abs(bm_->hitObjects[targetNoteIndex_][2] + bm_->offset - elapsed);
+
+    if (diff >= (badJudgeMs / 2))
+    {
+        return;
+    }
+
+    bm_->hitObjects.erase(bm_->hitObjects.begin() + targetNoteIndex_);
+
+    if (diff < (perfectJudgeMs / 2))
+    {
+        DrawGraph(34, 234, rl_->getTaikoHitEffectImages()[0], TRUE);
+    }
+    else if (diff < (goodJudgeMs / 2))
+    {
+        DrawGraph(34, 234, rl_->getTaikoHitEffectImages()[1], TRUE);
+    }
+    else
+    {
+        DrawGraph(34, 234, rl_->getTaikoHitEffectImages()[2], TRUE);
+    }
 }
