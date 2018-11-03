@@ -1,11 +1,13 @@
 #include "osu_file_loader.hpp"
+#include "DxLib.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <regex>
+#include "utils.hpp"
 
-OsuFileLoader::OsuFileLoader(const std::string &fileName)
-    : fileName_(fileName)
+OsuFileLoader::OsuFileLoader(const std::string &path)
+    : path_(path)
 {
 }
 
@@ -15,7 +17,8 @@ OsuFileLoader::~OsuFileLoader()
 
 std::unique_ptr<Beatmap> OsuFileLoader::load()
 {
-    std::ifstream ifs(fileName_);
+    auto fileNames = Util::getFileNames(path_, Util::FILES_ONLY, ".osu");
+    std::ifstream ifs(path_ + "/" + fileNames[0]);
     std::unique_ptr<Beatmap> bm = std::make_unique<Beatmap>();
 
     if (ifs.fail())
@@ -132,6 +135,9 @@ std::unique_ptr<Beatmap> OsuFileLoader::load()
     }
 
     bm->bpm = (1000 * 60) / bm->timingPoints[0][1];
+
+    std::string audioFilePath = path_ + "/" + bm->general["AudioFilename"];
+    bm->music = LoadSoundMem(audioFilePath.c_str());
 
     return bm;
 }

@@ -20,6 +20,7 @@ typedef struct
 {
     double bpm;
     double offset;
+    int music;
     std::unordered_map<std::string, std::string> general;
     std::unordered_map<std::string, std::string> editor;
     std::unordered_map<std::string, std::string> metadata;
@@ -37,7 +38,7 @@ public:
     std::unique_ptr<Beatmap> load();
 
 private:
-    std::string fileName_;
+    std::string path_;
     
     Tag analyzeTag(const std::string&) const;
     bool isComment(const std::string&) const;
