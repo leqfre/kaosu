@@ -18,12 +18,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return -1;
     }
 
+    SetDrawMode(DX_DRAWMODE_BILINEAR);
+
     auto *rl = ResourceLoader::getInstance();
     rl->load();
 
     auto fileNames = Util::getFileNames("./songs", Util::FOLDERS_ONLY);
 
-    auto taiko = std::make_unique<Taiko>(fileNames[3]);
+    auto taiko = std::make_unique<Taiko>(fileNames[4]);
     taiko->load();
 
     auto *gc = GameController::getInstance();

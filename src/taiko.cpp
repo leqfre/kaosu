@@ -14,8 +14,13 @@ namespace
 
     constexpr double musicVolume = 0.8;
 
-    constexpr int noteSize = 128;
+    constexpr int defaultNoteSize = 128;
+    constexpr int noteSmallSize = 110;
+    constexpr int noteBigSize = 170;
     constexpr int hitEffectSize = 260;
+
+    constexpr int judgeCircleX = 100;
+    constexpr int judgeCircleY = 300;
 
     constexpr int hitEffectX = 34;
     constexpr int hitEffectY = 234;
@@ -53,9 +58,9 @@ void Taiko::update()
     drawJudgeCircle();
     auto elapsed = calcElapsed();
 
-    bool isAutoPlay = false;
-    bool autoDon = false;
-    bool autoKatsu = false;
+    auto isAutoPlay = false;
+    auto autoDon = false;
+    auto autoKatsu = false;
 
     if (isAutoPlay && elapsed >= bm_->hitObjects[targetNoteIndex_][2] + bm_->offset)
     {
@@ -148,16 +153,25 @@ double Taiko::calcElapsed() const
 
 void Taiko::drawJudgeCircle() const
 {
-    DrawGraph(100, 300, rl_->getJudgeCircleImage(), TRUE);
+    DrawGraph(judgeCircleX, judgeCircleY, rl_->getJudgeCircleImage(), TRUE);
 }
 
 NoteType Taiko::getNoteType(const std::vector<double>& hitObject) const
 {
     switch ((int) hitObject[4])
     {
-    case  0: return Don;
-    case  4: return DonBig;
-    case  8: return Katsu;
+    case  0:
+    case  1: return Don;
+    case  2:
+    case  3:
+    case  8:
+    case  9:
+    case 10:
+    case 11: return Katsu;
+    case  4:
+    case  5: return DonBig;
+    case  6:
+    case  7:
     case 12: return KatsuBig;
     default: return None;
     }
@@ -165,19 +179,29 @@ NoteType Taiko::getNoteType(const std::vector<double>& hitObject) const
 
 void Taiko::drawNote(const int index, const double elapsed) const
 {
-    int noteType = getNoteType(bm_->hitObjects[index]);
-    double x = (bm_->offset + bm_->hitObjects[index][2] - elapsed) / bm_->timingPoints[0][1];
-    DrawGraph((int) (x * noteSize * 4 * hiSpeed + 130), 300, rl_->getTaikoNoteImages()[noteType - 1], TRUE);
+    auto noteType = getNoteType(bm_->hitObjects[index]);
+    auto x = (bm_->offset + bm_->hitObjects[index][2] - elapsed) / bm_->timingPoints[0][1];
+
+    auto isBigNote = (noteType == DonBig) || (noteType == KatsuBig);
+    auto noteSize = isBigNote ? noteBigSize : noteSmallSize;
+    auto centerAdjust = (defaultNoteSize - noteSize) / 2;
+
+    auto x1 = (int) (x * noteSmallSize * 4 * hiSpeed + 130) + centerAdjust;
+    auto x2 = x1 + noteSize;
+    auto y1 = judgeCircleY + centerAdjust;
+    auto y2 = y1 + noteSize;
+
+    DrawExtendGraph(x1, y1, x2, y2, rl_->getTaikoNoteImages()[noteType - 1], TRUE);
 }
 
 void Taiko::drawHitEffect(const HitEffectType type)
 {
     auto diff = pow(hitEffectCount - (maxHitEffectCount / 2), 2);
-    int x1 = (int) (hitEffectX + diff);
-    int x2 = (int) (hitEffectX + hitEffectSize - diff);
-    int y1 = (int) (hitEffectY + diff);
-    int y2 = (int) (hitEffectY + hitEffectSize - diff);
-    int transparent = (int) (255 * (1 - ((double) hitEffectCount / maxHitEffectCount)));
+    auto x1 = (int) (hitEffectX + diff);
+    auto x2 = (int) (hitEffectX + hitEffectSize - diff);
+    auto y1 = (int) (hitEffectY + diff);
+    auto y2 = (int) (hitEffectY + hitEffectSize - diff);
+    auto transparent = (int) (255 * (1 - ((double) hitEffectCount / maxHitEffectCount)));
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, transparent);
     DrawExtendGraph(x1, y1, x2, y2, rl_->getTaikoHitEffectImages()[type], TRUE) ;
