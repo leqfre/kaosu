@@ -41,18 +41,19 @@ private:
 
     void drawJudgeCircle() const;
     void drawNote(const int, const double) const;
-    void drawHitEffect(const HitEffectType type) const;
+    void drawHitEffect(const HitEffectType type);
 
     void playHitSound(const NoteType) const;
 
     ResourceLoader *rl_;
     GameController *gc_;
+    std::string path_;
     std::unique_ptr<Beatmap> bm_;
 
     std::chrono::system_clock::time_point start_;
 
-    std::string path_;
-
-    double position_;
     int targetNoteIndex_;
+
+    int hitEffectCount;
+    HitEffectType currentHitEffectType;
 };
