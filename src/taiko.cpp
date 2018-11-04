@@ -9,6 +9,8 @@ namespace
     constexpr int perfectJudgeMs = oneFrameMs * (1 + judgeLevel);
     constexpr int goodJudgeMs    = oneFrameMs * (4 + judgeLevel);
     constexpr int badJudgeMs     = oneFrameMs * 10;
+
+    constexpr int noteSize = 128;
 }
 
 Taiko::Taiko(const std::string& song)
@@ -23,8 +25,8 @@ Taiko::~Taiko()
 void Taiko::load()
 {
     bm_ = std::make_unique<OsuFileLoader>(path_)->load();
-    bm_->offset = 400;
-    //PlaySoundMem(bm_->music, DX_PLAYTYPE_BACK);
+    bm_->offset = 40;
+    PlaySoundMem(bm_->music, DX_PLAYTYPE_BACK);
 
     start_ = std::chrono::system_clock::now();
 
@@ -41,18 +43,36 @@ void Taiko::update()
     drawJudgeCircle();
     auto elapsed = calcElapsed();
 
+    bool isAutoPlay = true;
+    bool autoDon = false;
+    bool autoKatsu = false;
+
+    if (isAutoPlay && elapsed >= bm_->hitObjects[targetNoteIndex_][2] + bm_->offset)
+    {
+        auto noteType = getNoteType(bm_->hitObjects[targetNoteIndex_]);
+
+        if (noteType == Don || noteType == DonBig)
+        {
+            autoDon = true;
+        }
+        else if (noteType == Katsu || noteType == KatsuBig)
+        {
+            autoKatsu = true;
+        }
+    }
+
     if (isTargetNoteOutOfJudgeRange(elapsed))
     {
         ++targetNoteIndex_;
     }
 
-    if (gc_->getKey(KEY_INPUT_F) == 1 || gc_->getKey(KEY_INPUT_J) == 1)
+    if (gc_->getKey(KEY_INPUT_F) == 1 || gc_->getKey(KEY_INPUT_J) == 1 || autoDon)
     {
         playHitSound(Don);
         judge(elapsed, Don);
     }
 
-    if (gc_->getKey(KEY_INPUT_D) == 1 || gc_->getKey(KEY_INPUT_K) == 1)
+    if (gc_->getKey(KEY_INPUT_D) == 1 || gc_->getKey(KEY_INPUT_K) == 1 || autoKatsu)
     {
         playHitSound(Katsu);
         judge(elapsed, Katsu);
@@ -60,12 +80,11 @@ void Taiko::update()
 
     for (int i = 0; i < (signed) bm_->hitObjects.size(); ++i)
     {
-        drawNote(i);
+        drawNote(i, elapsed);
     }
-    position_ -= 26.7;
 }
 
-void Taiko::judge(double elapsed, NoteType inputedNoteType)
+void Taiko::judge(const double elapsed, const NoteType inputedNoteType)
 {
     auto diff = std::abs(bm_->hitObjects[targetNoteIndex_][2] + bm_->offset - elapsed);
 
@@ -138,19 +157,19 @@ NoteType Taiko::getNoteType(const std::vector<double>& hitObject) const
     return None;
 }
 
-void Taiko::drawNote(const int index) const
+void Taiko::drawNote(const int index, const double elapsed) const
 {
     int noteType = getNoteType(bm_->hitObjects[index]);
-
-    DrawGraph((int) (bm_->offset + bm_->hitObjects[index][2] * 1.6 + position_ + 300), 300, rl_->getTaikoNoteImages()[noteType - 1], TRUE);
+    double x = (bm_->hitObjects[index][2] - elapsed) / bm_->timingPoints[0][1];
+    DrawGraph((int) (bm_->offset + x * noteSize * 4 + 150), 300, rl_->getTaikoNoteImages()[noteType - 1], TRUE);
 }
 
-void Taiko::drawHitEffect(HitEffectType type) const
+void Taiko::drawHitEffect(const HitEffectType type) const
 {
     DrawGraph(34, 234, rl_->getTaikoHitEffectImages()[type], TRUE);
 }
 
-void Taiko::playHitSound(NoteType type) const
+void Taiko::playHitSound(const NoteType type) const
 {
     auto index = (type == Don || type == DonBig) ? 0 : 1;
     PlaySoundMem(rl_->getTaikoHitSounds()[index], DX_PLAYTYPE_BACK);

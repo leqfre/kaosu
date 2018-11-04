@@ -32,18 +32,18 @@ public:
     void update();
 
 private:
-    void judge(double, NoteType);
+    void judge(const double, const NoteType);
 
-    bool isTargetNoteOutOfJudgeRange(double) const;
+    bool isTargetNoteOutOfJudgeRange(const double) const;
     double calcElapsed() const;
 
     NoteType getNoteType(const std::vector<double>&) const;
 
     void drawJudgeCircle() const;
-    void drawNote(const int) const;
-    void drawHitEffect(HitEffectType type) const;
+    void drawNote(const int, const double) const;
+    void drawHitEffect(const HitEffectType type) const;
 
-    void playHitSound(NoteType) const;
+    void playHitSound(const NoteType) const;
 
     ResourceLoader *rl_;
     GameController *gc_;
