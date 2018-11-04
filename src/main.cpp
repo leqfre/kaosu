@@ -13,7 +13,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // SetOutApplicationLogValidFlag(FALSE);
 
-    if (DxLib_Init() == 1)
+    if (DxLib_Init() != 0)
     {
         return -1;
     }
@@ -23,7 +23,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     auto fileNames = Util::getFileNames("./songs", Util::FOLDERS_ONLY);
 
-    auto taiko = std::make_unique<Taiko>(fileNames[0]);
+    auto taiko = std::make_unique<Taiko>(fileNames[1]);
     taiko->load();
 
     auto *gc = GameController::getInstance();

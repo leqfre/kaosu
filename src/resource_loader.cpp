@@ -11,6 +11,8 @@ void ResourceLoader::load()
 {
     taikoNoteImages_[0] = LoadGraph("./rsc/don.png");
     taikoNoteImages_[1] = LoadGraph("./rsc/katsu.png");
+    taikoNoteImages_[2] = LoadGraph("./rsc/don_big.png");
+    taikoNoteImages_[3] = LoadGraph("./rsc/katsu_big.png");
 
     taikoHitEffectImages_[0] = LoadGraph("./rsc/taiko-hit300.png");
     taikoHitEffectImages_[1] = LoadGraph("./rsc/taiko-hit100.png");

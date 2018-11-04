@@ -8,8 +8,18 @@
 
 enum NoteType
 {
+    None,
     Don,
-    Katsu
+    Katsu,
+    DonBig,
+    KatsuBig
+};
+
+enum HitEffectType
+{
+    HE300,
+    HE100,
+    HE0
 };
 
 class Taiko
@@ -23,6 +33,17 @@ public:
 
 private:
     void judge(double, NoteType);
+
+    bool isTargetNoteOutOfJudgeRange(double) const;
+    double calcElapsed() const;
+
+    NoteType getNoteType(const std::vector<double>&) const;
+
+    void drawJudgeCircle() const;
+    void drawNote(const int) const;
+    void drawHitEffect(HitEffectType type) const;
+
+    void playHitSound(NoteType) const;
 
     ResourceLoader *rl_;
     GameController *gc_;
