@@ -34,8 +34,11 @@ public:
 private:
     void judge(const double, const NoteType);
 
-    bool isTargetNoteOutOfJudgeRange(const double) const;
+    bool isTargetTimingElapsed(const double) const;
+    bool isTargetNoteElapsed(const double) const;
+
     double calcElapsed() const;
+    double calcBeatmapHiSpeed();
 
     NoteType getNoteType(const std::vector<double>&) const;
 
@@ -52,8 +55,12 @@ private:
 
     std::chrono::system_clock::time_point start_;
 
+    int targetTimingIndex_;
     int targetNoteIndex_;
 
-    int hitEffectCount;
-    HitEffectType currentHitEffectType;
+    double beatmapHiSpeed_;
+    double notesInterval_;
+
+    int hitEffectCount_;
+    HitEffectType currentHitEffectType_;
 };

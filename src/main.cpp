@@ -25,7 +25,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     auto fileNames = Util::getFileNames("./songs", Util::FOLDERS_ONLY);
 
-    auto taiko = std::make_unique<Taiko>(fileNames[4]);
+    auto taiko = std::make_unique<Taiko>(fileNames[3]);
     taiko->load();
 
     auto *gc = GameController::getInstance();

@@ -10,21 +10,23 @@ namespace
     constexpr int goodJudgeMs    = oneFrameMs * (4 + judgeLevel);
     constexpr int badJudgeMs     = oneFrameMs * 10;
 
-    constexpr double hiSpeed = 0.8;
+    constexpr double systemHiSpeed = 0.85;
 
-    constexpr double musicVolume = 0.8;
+    constexpr double musicVolume = 0.7;
 
     constexpr int defaultNoteSize = 128;
-    constexpr int noteSmallSize = 110;
-    constexpr int noteBigSize = 170;
+    constexpr int noteSmallSize   = 100;
+    constexpr int noteBigSize     = 160;
+
     constexpr int hitEffectSize = 260;
 
-    constexpr int judgeCircleX = 100;
+    constexpr int judgeCircleX = 120;
     constexpr int judgeCircleY = 300;
 
-    constexpr int hitEffectX = 34;
-    constexpr int hitEffectY = 234;
-    constexpr int maxHitEffectCount = 10;
+    constexpr int hitEffectX = judgeCircleX - 66;
+    constexpr int hitEffectY = judgeCircleY - 66;
+
+    constexpr int maxhitEffectCount_ = 8;
 }
 
 Taiko::Taiko(const std::string& song)
@@ -45,20 +47,29 @@ void Taiko::load()
 
     start_ = std::chrono::system_clock::now();
 
+    targetTimingIndex_ = 0;
     targetNoteIndex_ = 0;
-    hitEffectCount = -1;
+
+    hitEffectCount_ = -1;
+    beatmapHiSpeed_ = 0;
+    notesInterval_ = 0;
 }
 
 void Taiko::update()
 {
-    DrawFormatString(0, 0, GetColor(0, 255, 0), "%d", bm_->hitObjects.size());
-    DrawFormatString(0,32, GetColor(0, 255, 0), "%lf", bm_->hitObjects[0][2]);
-    DrawFormatString(0,48, GetColor(0, 255, 0), "%d", targetNoteIndex_);
+    DrawFormatString(0,   0, GetColor(0, 255, 0), "%d", bm_->hitObjects.size());
+    DrawFormatString(0,  16, GetColor(0, 255, 0), "%lf", (1 - ((double) hitEffectCount_ / maxhitEffectCount_)));
+    DrawFormatString(0,  32, GetColor(0, 255, 0), "%lf", bm_->hitObjects[0][2]);
+    DrawFormatString(0,  48, GetColor(0, 255, 0), "%lf", bm_->timingPoints[targetTimingIndex_][0]);
+    DrawFormatString(0,  64, GetColor(0, 255, 0), "%lf", bm_->timingPoints[targetTimingIndex_][1]);
+    DrawFormatString(0,  80, GetColor(0, 255, 0), "%lf", beatmapHiSpeed_);
+    DrawFormatString(0,  96, GetColor(0, 255, 0), "%d", targetNoteIndex_);
 
     drawJudgeCircle();
+
     auto elapsed = calcElapsed();
 
-    auto isAutoPlay = false;
+    auto isAutoPlay = true;
     auto autoDon = false;
     auto autoKatsu = false;
 
@@ -76,16 +87,18 @@ void Taiko::update()
         }
     }
 
-    if (isTargetNoteOutOfJudgeRange(elapsed))
+    if (isTargetTimingElapsed(elapsed))
     {
-        hitEffectCount = 0;
-        currentHitEffectType = HE0;
-        ++targetNoteIndex_;
+        beatmapHiSpeed_ = calcBeatmapHiSpeed();
+        ++targetTimingIndex_;
+        //++targetTimingIndex_;
     }
 
-    for (int i = 0; i < (signed) bm_->hitObjects.size(); ++i)
+    if (isTargetNoteElapsed(elapsed))
     {
-        drawNote(i, elapsed);
+        hitEffectCount_ = 0;
+        currentHitEffectType_ = HE0;
+        ++targetNoteIndex_;
     }
 
     if (gc_->getKey(KEY_INPUT_F) == 1 || gc_->getKey(KEY_INPUT_J) == 1 || autoDon)
@@ -100,9 +113,14 @@ void Taiko::update()
         judge(elapsed, Katsu);
     }
 
-    if (hitEffectCount >= 0)
+    if (hitEffectCount_ >= 0)
     {
-        drawHitEffect(currentHitEffectType);
+        drawHitEffect(currentHitEffectType_);
+    }
+
+    for (int i = bm_->hitObjects.size() - 1; i > -1 ; --i)
+    {
+        drawNote(i, elapsed);
     }
 }
 
@@ -118,30 +136,35 @@ void Taiko::judge(const double elapsed, const NoteType inputedNoteType)
     auto targetNoteType = getNoteType(bm_->hitObjects[targetNoteIndex_]);
     bm_->hitObjects.erase(bm_->hitObjects.begin() + targetNoteIndex_);
 
-    hitEffectCount = 0;
+    hitEffectCount_ = 0;
 
     if ((inputedNoteType == Don && (targetNoteType != Don && targetNoteType != DonBig))
         || (inputedNoteType == Katsu && (targetNoteType != Katsu && targetNoteType != KatsuBig)))
     {
-        currentHitEffectType = HE0;
+        currentHitEffectType_ = HE0;
         return;
     }
 
     if (diff < (perfectJudgeMs / 2))
     {
-        currentHitEffectType = HE300;
+        currentHitEffectType_ = HE300;
     }
     else if (diff < (goodJudgeMs / 2))
     {
-        currentHitEffectType = HE100;
+        currentHitEffectType_ = HE100;
     }
     else
     {
-        currentHitEffectType = HE0;
+        currentHitEffectType_ = HE0;
     }
 }
 
-bool Taiko::isTargetNoteOutOfJudgeRange(const double elapsed) const
+bool Taiko::isTargetTimingElapsed(const double elapsed) const
+{
+    return (bm_->timingPoints[targetTimingIndex_][0] + bm_->offset < elapsed);
+}
+
+bool Taiko::isTargetNoteElapsed(const double elapsed) const
 {
     return (bm_->hitObjects[targetNoteIndex_][2] + bm_->offset + (badJudgeMs / 2) < elapsed);
 }
@@ -149,6 +172,18 @@ bool Taiko::isTargetNoteOutOfJudgeRange(const double elapsed) const
 double Taiko::calcElapsed() const
 {
     return static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_).count());
+}
+
+double Taiko::calcBeatmapHiSpeed()
+{
+    if (bm_->timingPoints[targetTimingIndex_][6] == 1)
+    {
+        notesInterval_ = bm_->timingPoints[targetTimingIndex_][1];
+        return beatmapHiSpeed_;
+    }
+
+    return 100.f / (bm_->timingPoints[targetTimingIndex_][1] * -1.f);
+
 }
 
 void Taiko::drawJudgeCircle() const
@@ -180,13 +215,14 @@ NoteType Taiko::getNoteType(const std::vector<double>& hitObject) const
 void Taiko::drawNote(const int index, const double elapsed) const
 {
     auto noteType = getNoteType(bm_->hitObjects[index]);
-    auto x = (bm_->offset + bm_->hitObjects[index][2] - elapsed) / bm_->timingPoints[0][1];
+    auto x = (bm_->offset + bm_->hitObjects[index][2] - elapsed) / notesInterval_;
+    //auto x = (bm_->offset + bm_->hitObjects[index][2] - elapsed) / bm_->timingPoints[0][1];
 
     auto isBigNote = (noteType == DonBig) || (noteType == KatsuBig);
     auto noteSize = isBigNote ? noteBigSize : noteSmallSize;
     auto centerAdjust = (defaultNoteSize - noteSize) / 2;
 
-    auto x1 = (int) (x * noteSmallSize * 4 * hiSpeed + 130) + centerAdjust;
+    auto x1 = (int) (x * noteSmallSize * 4 * systemHiSpeed * beatmapHiSpeed_ + 130) + centerAdjust;
     auto x2 = x1 + noteSize;
     auto y1 = judgeCircleY + centerAdjust;
     auto y2 = y1 + noteSize;
@@ -196,20 +232,22 @@ void Taiko::drawNote(const int index, const double elapsed) const
 
 void Taiko::drawHitEffect(const HitEffectType type)
 {
-    auto diff = pow(hitEffectCount - (maxHitEffectCount / 2), 2);
+    auto diff = pow(hitEffectCount_ - (maxhitEffectCount_ / 2), 2);
+
     auto x1 = (int) (hitEffectX + diff);
     auto x2 = (int) (hitEffectX + hitEffectSize - diff);
     auto y1 = (int) (hitEffectY + diff);
     auto y2 = (int) (hitEffectY + hitEffectSize - diff);
-    auto transparent = (int) (255 * (1 - ((double) hitEffectCount / maxHitEffectCount)));
+
+    auto transparent = (int) (255 * (1 - ((double) hitEffectCount_ / maxhitEffectCount_)));
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, transparent);
     DrawExtendGraph(x1, y1, x2, y2, rl_->getTaikoHitEffectImages()[type], TRUE) ;
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0) ;
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-    if (++hitEffectCount > maxHitEffectCount)
+    if (++hitEffectCount_ > maxhitEffectCount_)
     {
-        hitEffectCount = -1;
+        hitEffectCount_ = -1;
     }
 }
 
