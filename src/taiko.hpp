@@ -5,15 +5,7 @@
 #include "resource_loader.hpp"
 #include "game_controller.hpp"
 #include "osu_file_loader.hpp"
-
-enum NoteType
-{
-    None,
-    Don,
-    Katsu,
-    DonBig,
-    KatsuBig
-};
+#include "taiko_parser.hpp"
 
 enum HitEffectType
 {
@@ -60,6 +52,8 @@ private:
 
     double beatmapHiSpeed_;
     double notesInterval_;
+
+    std::vector<std::unique_ptr<Note>> notes_;
 
     int hitEffectCount_;
     HitEffectType currentHitEffectType_;

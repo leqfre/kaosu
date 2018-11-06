@@ -19,7 +19,6 @@ enum Tag
 typedef struct
 {
     double bpm;
-    double offset;
     int music;
     std::unordered_map<std::string, std::string> general;
     std::unordered_map<std::string, std::string> editor;
