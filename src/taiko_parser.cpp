@@ -11,6 +11,9 @@ TaikoParser::~TaikoParser()
 
 std::vector<std::unique_ptr<Note>> TaikoParser::parse(std::vector<std::vector<double>>& hitObjects, std::vector<std::vector<double>>& timingPoints)
 {
+    beatmapHiSpeed_ = 1.f;
+    notesInterval_ = timingPoints[0][1];
+
     std::vector<std::unique_ptr<Note>> notes(hitObjects.size());
 
     for (unsigned int i = 0; i < notes.size(); ++i)
@@ -62,11 +65,4 @@ NoteType TaikoParser::getNoteType(const std::vector<double>& hitObject) const
     case 12: return KatsuBig;
     default: return None;
     }
-}
-
-int TaikoParser::calcAdjust(NoteType noteType) const
-{
-    auto isBigNote = (noteType == DonBig) || (noteType == KatsuBig);
-    auto noteSize = isBigNote ? noteBigSize : noteSmallSize;
-    return (defaultNoteSize - noteSize) / 2;
 }

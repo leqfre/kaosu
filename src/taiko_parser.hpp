@@ -29,7 +29,6 @@ public:
 private:
     void updateSettings(std::vector<double>&);
     NoteType getNoteType(const std::vector<double>&) const;
-    int calcAdjust(NoteType noteType) const;
 
     double notesInterval_;
     double beatmapHiSpeed_;

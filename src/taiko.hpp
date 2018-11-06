@@ -26,13 +26,9 @@ public:
 private:
     void judge(const double, const NoteType);
 
-    bool isTargetTimingElapsed(const double) const;
     bool isTargetNoteElapsed(const double) const;
 
     double calcElapsed() const;
-    double calcBeatmapHiSpeed();
-
-    NoteType getNoteType(const std::vector<double>&) const;
 
     void drawJudgeCircle() const;
     void drawNote(const int, const double) const;
@@ -44,16 +40,11 @@ private:
     GameController *gc_;
     std::string path_;
     std::unique_ptr<Beatmap> bm_;
+    std::vector<std::unique_ptr<Note>> notes_;
 
     std::chrono::system_clock::time_point start_;
 
-    int targetTimingIndex_;
     int targetNoteIndex_;
-
-    double beatmapHiSpeed_;
-    double notesInterval_;
-
-    std::vector<std::unique_ptr<Note>> notes_;
 
     int hitEffectCount_;
     HitEffectType currentHitEffectType_;

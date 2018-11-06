@@ -25,7 +25,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     auto fileNames = Util::getFileNames("./songs", Util::FOLDERS_ONLY);
 
-    auto taiko = std::make_unique<Taiko>(fileNames[3]);
+    auto taiko = std::make_unique<Taiko>(fileNames[1]);
     taiko->load();
 
     auto *gc = GameController::getInstance();
@@ -44,7 +44,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
         gc->update();
         taiko->update();
-        // DrawFormatString(0, 0, GetColor(0, 255, 0), "%s", fileNames[0]);
 
         /*************************************************************/
 

@@ -1,5 +1,6 @@
 #include "taiko.hpp"
 #include <cstdlib>
+#include "taiko_common.hpp"
 
 namespace
 {
@@ -10,13 +11,7 @@ namespace
     constexpr int goodJudgeMs    = oneFrameMs * (4 + judgeLevel);
     constexpr int badJudgeMs     = oneFrameMs * 10;
 
-    constexpr double systemHiSpeed = 0.85;
-
     constexpr double musicVolume = 0.7;
-
-    constexpr int defaultNoteSize = 128;
-    constexpr int noteSmallSize   = 100;
-    constexpr int noteBigSize     = 160;
 
     constexpr int hitEffectSize = 260;
 
@@ -27,6 +22,8 @@ namespace
     constexpr int hitEffectY = judgeCircleY - 66;
 
     constexpr int maxhitEffectCount_ = 8;
+
+    constexpr int maxDisplayNotes = 50;
 }
 
 Taiko::Taiko(const std::string& song)
@@ -47,22 +44,18 @@ void Taiko::load()
     notes_ = tp->parse(bm_->hitObjects, bm_->timingPoints);
 
     PlaySoundMem(bm_->music, DX_PLAYTYPE_BACK);
-
     start_ = std::chrono::system_clock::now();
 
-    targetTimingIndex_ = 0;
     targetNoteIndex_ = 0;
-
     hitEffectCount_ = -1;
-    beatmapHiSpeed_ = 0;
-    notesInterval_ = 0;
 }
 
 void Taiko::update()
 {
-    DrawFormatString(0,   0, GetColor(0, 255, 0), "%d", bm_->hitObjects.size());
-    DrawFormatString(0,  16, GetColor(0, 255, 0), "%lf", notes_[targetNoteIndex_]->timing);
-    DrawFormatString(0,  32, GetColor(0, 255, 0), "%d", targetNoteIndex_);
+    DrawFormatString(0,   0, GetColor(0, 255, 0), "%d", notes_.size());
+    DrawFormatString(0,  16, GetColor(0, 255, 0), "%lf", notes_[targetNoteIndex_]->vx);
+    DrawFormatString(0,  32, GetColor(0, 255, 0), "%lf", notes_[targetNoteIndex_]->timing);
+    DrawFormatString(0,  48, GetColor(0, 255, 0), "%d", targetNoteIndex_);
 
     drawJudgeCircle();
 
@@ -110,7 +103,9 @@ void Taiko::update()
         drawHitEffect(currentHitEffectType_);
     }
 
-    for (int i = notes_.size() - 1; i > -1 ; --i)
+    auto initialValue = maxDisplayNotes > notes_.size() - 1 ? notes_.size() - 1 : maxDisplayNotes;
+
+    for (int i = initialValue; i > -1 ; --i)
     {
         drawNote(i, elapsed);
     }
