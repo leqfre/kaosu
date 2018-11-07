@@ -35,17 +35,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         ClearDrawScreen();
         SetDrawScreen(DX_SCREEN_BACK);
 
-        /*************************************************************/
-
-        if (gc->getKey(KEY_INPUT_Q) == 1)
-        {
-            taiko->load();
-        }
-
         gc->update();
         taiko->update();
-
-        /*************************************************************/
 
         ScreenFlip();
     }

@@ -1,6 +1,7 @@
 #include "taiko.hpp"
 #include <cstdlib>
 #include "taiko_common.hpp"
+#include "common_const.hpp"
 
 namespace
 {
@@ -11,11 +12,11 @@ namespace
     constexpr int goodJudgeMs    = oneFrameMs * (4 + judgeLevel);
     constexpr int badJudgeMs     = oneFrameMs * 10;
 
-    constexpr double musicVolume = 0.7;
+    constexpr double musicVolume = 0.75;
 
     constexpr int hitEffectSize = 260;
 
-    constexpr int judgeCircleX = 120;
+    constexpr int judgeCircleX = 200;
     constexpr int judgeCircleY = 300;
 
     constexpr int hitEffectX = judgeCircleX - 66;
@@ -48,10 +49,18 @@ void Taiko::load()
 
     targetNoteIndex_ = 0;
     hitEffectCount_ = -1;
+
+    combo_ = 0;
 }
 
 void Taiko::update()
 {
+    if (gc_->getKey(KEY_INPUT_Q) == 1)
+    {
+        DeleteSoundMem(bm_->music);
+        load();
+    }
+
     DrawFormatString(0,   0, GetColor(0, 255, 0), "%d", notes_.size());
     DrawFormatString(0,  16, GetColor(0, 255, 0), "%lf", notes_[targetNoteIndex_]->vx);
     DrawFormatString(0,  32, GetColor(0, 255, 0), "%lf", notes_[targetNoteIndex_]->timing);
@@ -61,38 +70,53 @@ void Taiko::update()
 
     auto elapsed = calcElapsed();
 
-    auto isAutoPlay = true;
-    auto autoDon = false;
-    auto autoKatsu = false;
+    auto isAutoPlay = false || gc_->getKey(KEY_INPUT_TAB) > 0;
+    auto donL   = false;
+    auto donR   = false;
+    auto katsuL = false;
+    auto katsuR = false;
+
 
     if (isAutoPlay && elapsed >= notes_[targetNoteIndex_]->timing)
     {
         auto noteType = notes_[targetNoteIndex_]->type;
 
-        if (noteType == Don || noteType == DonBig)
+        switch (noteType)
         {
-            autoDon = true;
-        }
-        else if (noteType == Katsu || noteType == KatsuBig)
-        {
-            autoKatsu = true;
+        case Don:      donL   = true; break;
+        case DonBig:   donL   = true; donR   = true; break;
+        case Katsu:    katsuL = true; break;
+        case KatsuBig: katsuL = true; katsuR = true; break;
         }
     }
 
     if (isTargetNoteElapsed(elapsed))
     {
+        combo_ = 0;
         hitEffectCount_ = 0;
         currentHitEffectType_ = HE0;
         ++targetNoteIndex_;
     }
 
-    if (gc_->getKey(KEY_INPUT_F) == 1 || gc_->getKey(KEY_INPUT_J) == 1 || autoDon)
+    if (gc_->getKey(KEY_INPUT_F) == 1 || donL)
     {
         playHitSound(Don);
         judge(elapsed, Don);
     }
 
-    if (gc_->getKey(KEY_INPUT_D) == 1 || gc_->getKey(KEY_INPUT_K) == 1 || autoKatsu)
+    if (gc_->getKey(KEY_INPUT_J) == 1 || donR)
+    {
+        playHitSound(Don);
+        judge(elapsed, Don);
+    }
+
+    if (gc_->getKey(KEY_INPUT_D) == 1 || katsuL)
+    {
+        playHitSound(Katsu);
+        judge(elapsed, Katsu);
+    }
+
+    if (gc_->getKey(KEY_INPUT_K) == 1 || katsuR)
     {
         playHitSound(Katsu);
         judge(elapsed, Katsu);
@@ -109,6 +133,8 @@ void Taiko::update()
     {
         drawNote(i, elapsed);
     }
+
+    drawCombo();
 }
 
 void Taiko::judge(const double elapsed, const NoteType inputedNoteType)
@@ -128,20 +154,24 @@ void Taiko::judge(const double elapsed, const NoteType inputedNoteType)
     if ((inputedNoteType == Don && (targetNoteType != Don && targetNoteType != DonBig))
         || (inputedNoteType == Katsu && (targetNoteType != Katsu && targetNoteType != KatsuBig)))
     {
+        combo_ = 0;
         currentHitEffectType_ = HE0;
         return;
     }
 
     if (diff < (perfectJudgeMs / 2))
     {
+        ++combo_;
         currentHitEffectType_ = HE300;
     }
     else if (diff < (goodJudgeMs / 2))
     {
+        ++combo_;
         currentHitEffectType_ = HE100;
     }
     else
     {
+        combo_ = 0;
         currentHitEffectType_ = HE0;
     }
 }
@@ -156,12 +186,20 @@ double Taiko::calcElapsed() const
     return static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_).count());
 }
 
+void Taiko::drawCombo() const
+{
+    auto width = GetDrawFormatStringWidthToHandle(rl_->getFont(), "%d", combo_);
+    auto x = judgeCircleX / 2 - width;
+    auto y = judgeCircleY + (noteBigSize - COMBO_FONT_SIZE) / 2;
+    DrawFormatStringToHandle(x, y, GetColor(255, 255, 255), rl_->getFont(), "%d", combo_);
+}
+
 void Taiko::drawJudgeCircle() const
 {
     DrawGraph(judgeCircleX, judgeCircleY, rl_->getJudgeCircleImage(), TRUE);
 }
 
-void Taiko::drawNote(const int index, const double elapsed) const
+void Taiko::drawNote(const int index, const double elapsed)
 {
     auto time = notes_[index]->timing - elapsed;
 
@@ -170,10 +208,17 @@ void Taiko::drawNote(const int index, const double elapsed) const
 
     auto adjust = (defaultNoteSize - noteSize) / 2;
 
-    auto x1 = (int) (time * notes_[index]->vx + 130) + adjust;
+    auto x1 = (int) (time * notes_[index]->vx + judgeCircleX + 10) + adjust;
     auto x2 = x1 + noteSize;
     auto y1 = judgeCircleY + adjust;
     auto y2 = y1 + noteSize;
+
+    if (x2 < 0)
+    {
+        notes_.erase(notes_.begin() + index);
+        --targetNoteIndex_;
+        return;
+    }
 
     DrawExtendGraph(x1, y1, x2, y2, rl_->getTaikoNoteImages()[notes_[index]->type - 1], TRUE);
 }

@@ -158,6 +158,7 @@
     <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\common_const.hpp" />
     <ClInclude Include="src\game_controller.hpp" />
     <ClInclude Include="src\osu_file_loader.hpp" />
     <ClInclude Include="src\resource_loader.hpp" />

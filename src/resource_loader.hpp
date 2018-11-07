@@ -18,6 +18,7 @@ public:
     std::array<int, taikoNoteTypes> getTaikoNoteImages() const;
     std::array<int, taikoNoteTypes> getTaikoHitEffectImages() const;
     int getJudgeCircleImage() const;
+    int getFont() const;
 
 
     std::array<int, taikoNoteTypes> getTaikoHitSounds() const;
@@ -29,6 +30,7 @@ private:
     std::array<int, taikoNoteTypes> taikoNoteImages_;
     std::array<int, taikoNoteTypes> taikoHitEffectImages_;
     int judgeCircleImage_;
+    int font_;
 
     std::array<int, taikoNoteTypes> taikoHitSounds_;
 };

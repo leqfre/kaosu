@@ -1,5 +1,6 @@
 #include "resource_loader.hpp"
 #include "DxLib.h"
+#include "common_const.hpp"
 
 ResourceLoader *ResourceLoader::getInstance()
 {
@@ -9,6 +10,8 @@ ResourceLoader *ResourceLoader::getInstance()
 
 void ResourceLoader::load()
 {
+    font_ = CreateFontToHandle("./rsc/PhantasmAllCaps.ttf", COMBO_FONT_SIZE, COMBO_FONT_THICK, DX_FONTTYPE_ANTIALIASING);
+
     taikoNoteImages_[0] = LoadGraph("./rsc/don.png");
     taikoNoteImages_[1] = LoadGraph("./rsc/katsu.png");
     taikoNoteImages_[2] = LoadGraph("./rsc/don_big.png");
@@ -22,6 +25,11 @@ void ResourceLoader::load()
 
     taikoHitSounds_[0] = LoadSoundMem("./rsc/taiko-normal-hitfinish.wav");
     taikoHitSounds_[1] = LoadSoundMem("./rsc/taiko-normal-hitclap.wav");
+}
+
+int ResourceLoader::getFont() const
+{
+    return font_;
 }
 
 std::array<int, taikoNoteTypes> ResourceLoader::getTaikoNoteImages() const

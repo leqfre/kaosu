@@ -31,7 +31,8 @@ private:
     double calcElapsed() const;
 
     void drawJudgeCircle() const;
-    void drawNote(const int, const double) const;
+    void drawCombo() const;
+    void drawNote(const int, const double);
     void drawHitEffect(const HitEffectType type);
 
     void playHitSound(const NoteType) const;
@@ -48,4 +49,6 @@ private:
 
     int hitEffectCount_;
     HitEffectType currentHitEffectType_;
+
+    int combo_;
 };
