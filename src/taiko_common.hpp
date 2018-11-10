@@ -7,4 +7,6 @@ namespace
     constexpr int defaultNoteSize = 128;
     constexpr int noteSmallSize   = 100;
     constexpr int noteBigSize     = 160;
+
+    constexpr int defaultOffsetMs = 2000;
 }

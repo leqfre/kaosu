@@ -18,16 +18,24 @@ typedef struct
     int timing;
 } Note;
 
+typedef struct
+{
+    double vx;
+    int timing;
+} BarLine;
+
 class TaikoParser
 {
 public:
     TaikoParser();
     ~TaikoParser();
 
-    std::vector<std::unique_ptr<Note>> parse(std::vector<std::vector<double>>&, std::vector<std::vector<double>>&);
+    std::vector<std::unique_ptr<Note>> parse(std::vector<std::vector<double>>&, const std::vector<std::vector<double>>&);
+    std::vector<std::unique_ptr<BarLine>> makeBarLines(std::vector<std::vector<double>>&);
 
 private:
-    void updateSettings(std::vector<double>&);
+    double calcVelocity() const;
+    void updateSettings(const std::vector<double>&);
     NoteType getNoteType(const std::vector<double>&) const;
 
     double notesInterval_;

@@ -44,13 +44,17 @@ void Taiko::load()
     auto tp = std::make_unique<TaikoParser>();
     notes_ = tp->parse(bm_->hitObjects, bm_->timingPoints);
 
-    PlaySoundMem(bm_->music, DX_PLAYTYPE_BACK);
+    barLines_ = tp->makeBarLines(bm_->timingPoints);
+
     start_ = std::chrono::system_clock::now();
 
     targetNoteIndex_ = 0;
     hitEffectCount_ = -1;
 
     combo_ = 0;
+    offset_ = defaultOffsetMs;
+
+    isPlayingMusic_ = false;
 }
 
 void Taiko::update()
@@ -69,6 +73,12 @@ void Taiko::update()
     drawJudgeCircle();
 
     auto elapsed = calcElapsed();
+
+    if (!isPlayingMusic_ && elapsed >= offset_)
+    {
+        PlaySoundMem(bm_->music, DX_PLAYTYPE_BACK);
+        isPlayingMusic_ = true;
+    }
 
     auto isAutoPlay = false || gc_->getKey(KEY_INPUT_TAB) > 0;
     auto donL   = false;
@@ -128,6 +138,11 @@ void Taiko::update()
     }
 
     auto initialValue = maxDisplayNotes > notes_.size() - 1 ? notes_.size() - 1 : maxDisplayNotes;
+
+    for (unsigned int i = 0; i < barLines_.size(); ++i)
+    {
+        drawBarLine(i, elapsed);
+    }
 
     for (int i = initialValue; i > -1 ; --i)
     {
@@ -197,6 +212,19 @@ void Taiko::drawCombo() const
 void Taiko::drawJudgeCircle() const
 {
     DrawGraph(judgeCircleX, judgeCircleY, rl_->getJudgeCircleImage(), TRUE);
+}
+
+void Taiko::drawBarLine(const int index, const double elapsed)
+{
+    auto time = barLines_[index]->timing - elapsed;
+
+    auto adjust = (defaultNoteSize) / 2;
+
+    auto x = (int) (time * barLines_[index]->vx + judgeCircleX + 10) + adjust;
+    auto y = judgeCircleY - 8;
+
+    DrawLine(x, y, x, y + noteBigSize, GetColor(255, 255, 255));
+    //DrawGraph(x, y, rl_->getTaikoNoteImages()[2], TRUE);
 }
 
 void Taiko::drawNote(const int index, const double elapsed)

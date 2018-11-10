@@ -32,6 +32,7 @@ private:
 
     void drawJudgeCircle() const;
     void drawCombo() const;
+    void drawBarLine(const int, const double);
     void drawNote(const int, const double);
     void drawHitEffect(const HitEffectType type);
 
@@ -42,6 +43,7 @@ private:
     std::string path_;
     std::unique_ptr<Beatmap> bm_;
     std::vector<std::unique_ptr<Note>> notes_;
+    std::vector<std::unique_ptr<BarLine>> barLines_;
 
     std::chrono::system_clock::time_point start_;
 
@@ -51,4 +53,7 @@ private:
     HitEffectType currentHitEffectType_;
 
     int combo_;
+    int offset_;
+
+    bool isPlayingMusic_;
 };
