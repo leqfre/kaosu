@@ -9,7 +9,7 @@ TaikoParser::~TaikoParser()
 {
 }
 
-std::vector<std::unique_ptr<Note>> TaikoParser::parse(std::vector<std::vector<double>>& hitObjects, const std::vector<std::vector<double>>& timingPoints)
+std::vector<std::unique_ptr<Note>> TaikoParser::makeNotes(std::vector<std::vector<double>>& hitObjects, const std::vector<std::vector<double>>& timingPoints)
 {
     int timingPointsIndex = 0;
 
@@ -28,7 +28,7 @@ std::vector<std::unique_ptr<Note>> TaikoParser::parse(std::vector<std::vector<do
             ++timingPointsIndex;
         }
         
-        notes[i]->vx = calcVelocity();
+        notes[i]->velocity = calcVelocity();
         notes[i]->type = getNoteType(hitObjects[i]);
         notes[i]->timing = (int) hitObjects[i][2] + blankPeriodMs + timingOffset;
     }
@@ -57,7 +57,7 @@ std::vector<std::unique_ptr<BarLine>> TaikoParser::makeBarLines(std::vector<std:
         }
 
         barLines.push_back(std::make_unique<BarLine>());
-        barLines.back()->vx = calcVelocity();
+        barLines.back()->velocity = calcVelocity();
         barLines.back()->timing = (int) elapsed + blankPeriodMs + timingOffset;
 
         elapsed += notesInterval_ * 4.f;

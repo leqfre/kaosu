@@ -24,16 +24,17 @@ public:
     void update();
 
 private:
-    void judge(const double, const NoteType);
+    void checkKeyInput();
+    void judge(const NoteType);
 
-    bool isTargetNoteElapsed(const double) const;
+    bool isTargetNoteElapsed() const;
 
     double calcElapsed() const;
 
     void drawJudgeCircle() const;
     void drawCombo() const;
-    void drawBarLine(const int, const double);
-    void drawNote(const int, const double);
+    void drawBarLine(const int);
+    void drawNote(const int);
     void drawHitEffect(const HitEffectType type);
 
     void playHitSound(const NoteType) const;
@@ -46,6 +47,7 @@ private:
     std::vector<std::unique_ptr<BarLine>> barLines_;
 
     std::chrono::system_clock::time_point start_;
+    double elapsed_;
 
     int targetNoteIndex_;
 
@@ -53,7 +55,6 @@ private:
     HitEffectType currentHitEffectType_;
 
     int combo_;
-    int offset_;
 
     bool isPlayingMusic_;
 };

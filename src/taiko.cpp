@@ -44,11 +44,9 @@ void Taiko::load()
     ChangeVolumeSoundMem((int) (255 * musicVolume), bm_->music);
     
     auto tp = std::make_unique<TaikoParser>();
-    notes_ = tp->parse(bm_->hitObjects, bm_->timingPoints);
 
+    notes_ = tp->makeNotes(bm_->hitObjects, bm_->timingPoints);
     barLines_ = tp->makeBarLines(bm_->timingPoints, bm_->hitObjects.back()[2]);
-
-    start_ = std::chrono::system_clock::now();
 
     targetNoteIndex_ = 0;
     hitEffectCount_ = -1;
@@ -56,37 +54,73 @@ void Taiko::load()
     combo_ = 0;
 
     isPlayingMusic_ = false;
+
+    start_ = std::chrono::system_clock::now();
 }
 
 void Taiko::update()
 {
+    DrawFormatString(0,   0, GetColor(0, 255, 0), "%d", notes_.size());
+    DrawFormatString(0,  16, GetColor(0, 255, 0), "%lf", notes_[targetNoteIndex_]->velocity);
+
+    elapsed_ = calcElapsed();
+
     if (gc_->getKey(KEY_INPUT_Q) == 1)
     {
         DeleteSoundMem(bm_->music);
         load();
     }
 
-    DrawFormatString(0,   0, GetColor(0, 255, 0), "%d", notes_.size());
-    DrawFormatString(0,  16, GetColor(0, 255, 0), "%lf", notes_[targetNoteIndex_]->vx);
-
-    drawJudgeCircle();
-
-    auto elapsed = calcElapsed();
-
-    if (!isPlayingMusic_ && elapsed >= blankPeriodMs)
+    if (!isPlayingMusic_ && elapsed_ >= blankPeriodMs)
     {
         PlaySoundMem(bm_->music, DX_PLAYTYPE_BACK);
         isPlayingMusic_ = true;
     }
 
-    auto isAutoPlay = false || gc_->getKey(KEY_INPUT_TAB) > 0;
+    if (isTargetNoteElapsed())
+    {
+        combo_ = 0;
+        hitEffectCount_ = 0;
+        currentHitEffectType_ = HE0;
+        ++targetNoteIndex_;
+    }
+
+    checkKeyInput();
+
+    drawJudgeCircle();
+
+    if (hitEffectCount_ >= 0)
+    {
+        drawHitEffect(currentHitEffectType_);
+    }
+
+    for (unsigned int i = 0; i < barLines_.size(); ++i)
+    {
+        drawBarLine(i);
+    }
+
+    for (int i = min(notes_.size() - 1, maxDisplayNotes); i > -1 ; --i)
+    {
+        drawNote(i);
+    }
+
+    drawCombo();
+}
+
+void Taiko::checkKeyInput()
+{
+    static bool isAutoPlay;
     auto donL   = false;
     auto donR   = false;
     auto katsuL = false;
     auto katsuR = false;
 
+    if (gc_->getKey(KEY_INPUT_TAB) == 1)
+    {
+        isAutoPlay = !isAutoPlay;
+    }
 
-    if (isAutoPlay && elapsed >= notes_[targetNoteIndex_]->timing)
+    if (isAutoPlay && elapsed_ >= notes_[targetNoteIndex_]->timing)
     {
         auto noteType = notes_[targetNoteIndex_]->type;
 
@@ -99,61 +133,34 @@ void Taiko::update()
         }
     }
 
-    if (isTargetNoteElapsed(elapsed))
-    {
-        combo_ = 0;
-        hitEffectCount_ = 0;
-        currentHitEffectType_ = HE0;
-        ++targetNoteIndex_;
-    }
-
     if (gc_->getKey(KEY_INPUT_F) == 1 || donL)
     {
         playHitSound(Don);
-        judge(elapsed, Don);
+        judge(Don);
     }
 
     if (gc_->getKey(KEY_INPUT_J) == 1 || donR)
     {
         playHitSound(Don);
-        judge(elapsed, Don);
+        judge(Don);
     }
 
     if (gc_->getKey(KEY_INPUT_D) == 1 || katsuL)
     {
         playHitSound(Katsu);
-        judge(elapsed, Katsu);
+        judge(Katsu);
     }
 
     if (gc_->getKey(KEY_INPUT_K) == 1 || katsuR)
     {
         playHitSound(Katsu);
-        judge(elapsed, Katsu);
+        judge(Katsu);
     }
-
-    if (hitEffectCount_ >= 0)
-    {
-        drawHitEffect(currentHitEffectType_);
-    }
-
-    auto initialValue = maxDisplayNotes > notes_.size() - 1 ? notes_.size() - 1 : maxDisplayNotes;
-
-    for (unsigned int i = 0; i < barLines_.size(); ++i)
-    {
-        drawBarLine(i, elapsed);
-    }
-
-    for (int i = initialValue; i > -1 ; --i)
-    {
-        drawNote(i, elapsed);
-    }
-
-    drawCombo();
 }
 
-void Taiko::judge(const double elapsed, const NoteType inputedNoteType)
+void Taiko::judge(const NoteType inputedNoteType)
 {
-    auto diff = std::abs(notes_[targetNoteIndex_]->timing - elapsed);
+    auto diff = std::abs(notes_[targetNoteIndex_]->timing - elapsed_);
 
     if (diff >= (badJudgeMs / 2))
     {
@@ -190,9 +197,9 @@ void Taiko::judge(const double elapsed, const NoteType inputedNoteType)
     }
 }
 
-bool Taiko::isTargetNoteElapsed(const double elapsed) const
+bool Taiko::isTargetNoteElapsed() const
 {
-    return (notes_[targetNoteIndex_]->timing + (badJudgeMs / 2) < elapsed);
+    return (notes_[targetNoteIndex_]->timing + (badJudgeMs / 2) < elapsed_);
 }
 
 double Taiko::calcElapsed() const
@@ -213,29 +220,28 @@ void Taiko::drawJudgeCircle() const
     DrawGraph(judgeCircleX, judgeCircleY, rl_->getJudgeCircleImage(), TRUE);
 }
 
-void Taiko::drawBarLine(const int index, const double elapsed)
+void Taiko::drawBarLine(const int index)
 {
-    auto time = barLines_[index]->timing - elapsed;
+    auto time = barLines_[index]->timing - elapsed_;
 
     auto adjust = (defaultNoteSize) / 2;
 
-    auto x = (int) (time * barLines_[index]->vx + judgeCircleX + notesOffset) + adjust;
+    auto x = (int) (time * barLines_[index]->velocity + judgeCircleX + notesOffset) + adjust;
     auto y = judgeCircleY - 8;
 
     DrawLine(x, y, x, y + noteBigSize, GetColor(255, 255, 255));
-    //DrawGraph(x, y, rl_->getTaikoNoteImages()[2], TRUE);
 }
 
-void Taiko::drawNote(const int index, const double elapsed)
+void Taiko::drawNote(const int index)
 {
-    auto time = notes_[index]->timing - elapsed;
+    auto time = notes_[index]->timing - elapsed_;
 
     auto isBig = (notes_[index]->type == DonBig || notes_[index]->type == KatsuBig);
     auto noteSize = isBig ? noteBigSize : noteSmallSize;
 
     auto adjust = (defaultNoteSize - noteSize) / 2;
 
-    auto x1 = (int) (time * notes_[index]->vx + judgeCircleX + notesOffset) + adjust;
+    auto x1 = (int) (time * notes_[index]->velocity + judgeCircleX + notesOffset) + adjust;
     auto x2 = x1 + noteSize;
     auto y1 = judgeCircleY + adjust;
     auto y2 = y1 + noteSize;
