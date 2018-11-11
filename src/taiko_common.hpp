@@ -8,5 +8,7 @@ namespace
     constexpr int noteSmallSize   = 100;
     constexpr int noteBigSize     = 160;
 
-    constexpr int defaultOffsetMs = 2000;
+    constexpr int blankPeriodMs = 2000;
+
+    constexpr int timingOffset = 70;
 }

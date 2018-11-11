@@ -8,6 +8,8 @@ namespace
     constexpr int judgeLevel = 5;
     constexpr int oneFrameMs = 1000 / 60;
 
+    constexpr int notesOffset = -5;
+
     constexpr int perfectJudgeMs = oneFrameMs * (1 + judgeLevel);
     constexpr int goodJudgeMs    = oneFrameMs * (4 + judgeLevel);
     constexpr int badJudgeMs     = oneFrameMs * 10;
@@ -44,7 +46,7 @@ void Taiko::load()
     auto tp = std::make_unique<TaikoParser>();
     notes_ = tp->parse(bm_->hitObjects, bm_->timingPoints);
 
-    barLines_ = tp->makeBarLines(bm_->timingPoints);
+    barLines_ = tp->makeBarLines(bm_->timingPoints, bm_->hitObjects.back()[2]);
 
     start_ = std::chrono::system_clock::now();
 
@@ -52,7 +54,6 @@ void Taiko::load()
     hitEffectCount_ = -1;
 
     combo_ = 0;
-    offset_ = defaultOffsetMs;
 
     isPlayingMusic_ = false;
 }
@@ -67,14 +68,12 @@ void Taiko::update()
 
     DrawFormatString(0,   0, GetColor(0, 255, 0), "%d", notes_.size());
     DrawFormatString(0,  16, GetColor(0, 255, 0), "%lf", notes_[targetNoteIndex_]->vx);
-    DrawFormatString(0,  32, GetColor(0, 255, 0), "%lf", notes_[targetNoteIndex_]->timing);
-    DrawFormatString(0,  48, GetColor(0, 255, 0), "%d", targetNoteIndex_);
 
     drawJudgeCircle();
 
     auto elapsed = calcElapsed();
 
-    if (!isPlayingMusic_ && elapsed >= offset_)
+    if (!isPlayingMusic_ && elapsed >= blankPeriodMs)
     {
         PlaySoundMem(bm_->music, DX_PLAYTYPE_BACK);
         isPlayingMusic_ = true;
@@ -220,7 +219,7 @@ void Taiko::drawBarLine(const int index, const double elapsed)
 
     auto adjust = (defaultNoteSize) / 2;
 
-    auto x = (int) (time * barLines_[index]->vx + judgeCircleX + 10) + adjust;
+    auto x = (int) (time * barLines_[index]->vx + judgeCircleX + notesOffset) + adjust;
     auto y = judgeCircleY - 8;
 
     DrawLine(x, y, x, y + noteBigSize, GetColor(255, 255, 255));
@@ -236,7 +235,7 @@ void Taiko::drawNote(const int index, const double elapsed)
 
     auto adjust = (defaultNoteSize - noteSize) / 2;
 
-    auto x1 = (int) (time * notes_[index]->vx + judgeCircleX + 10) + adjust;
+    auto x1 = (int) (time * notes_[index]->vx + judgeCircleX + notesOffset) + adjust;
     auto x2 = x1 + noteSize;
     auto y1 = judgeCircleY + adjust;
     auto y2 = y1 + noteSize;

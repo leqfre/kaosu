@@ -31,7 +31,7 @@ public:
     ~TaikoParser();
 
     std::vector<std::unique_ptr<Note>> parse(std::vector<std::vector<double>>&, const std::vector<std::vector<double>>&);
-    std::vector<std::unique_ptr<BarLine>> makeBarLines(std::vector<std::vector<double>>&);
+    std::vector<std::unique_ptr<BarLine>> makeBarLines(std::vector<std::vector<double>>&, const double);
 
 private:
     double calcVelocity() const;

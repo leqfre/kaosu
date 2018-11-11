@@ -30,34 +30,37 @@ std::vector<std::unique_ptr<Note>> TaikoParser::parse(std::vector<std::vector<do
         
         notes[i]->vx = calcVelocity();
         notes[i]->type = getNoteType(hitObjects[i]);
-        notes[i]->timing = (int) hitObjects[i][2] + defaultOffsetMs;
+        notes[i]->timing = (int) hitObjects[i][2] + blankPeriodMs + timingOffset;
     }
 
     return notes;
 }
 
-std::vector<std::unique_ptr<BarLine>> TaikoParser::makeBarLines(std::vector<std::vector<double>>& timingPoints)
+std::vector<std::unique_ptr<BarLine>> TaikoParser::makeBarLines(std::vector<std::vector<double>>& timingPoints, const double lastNoteTiming)
 {
     double elapsed = timingPoints[0][1];
 
-    //beatmapHiSpeed_ = 1.f;
-    //notesInterval_ = timingPoints[0][1]; 
-
     std::vector<std::unique_ptr<BarLine>> barLines;
 
-    for (unsigned int i = 0; i < timingPoints.size() - 1; ++i)
+    
+    for (unsigned int i = 0; i < timingPoints.size() || elapsed <= lastNoteTiming;)
     {
-        updateSettings(timingPoints[i]);
-        elapsed = timingPoints[i][0];
-
-        while (elapsed < timingPoints[i + 1][0])
+        while (i < timingPoints.size() && elapsed >= timingPoints[i][0])
         {
-            barLines.push_back(std::make_unique<BarLine>());
-            barLines.back()->vx = calcVelocity();
-            barLines.back()->timing = (int) elapsed + defaultOffsetMs;
+            updateSettings(timingPoints[i]);
 
-            elapsed += notesInterval_ * 4.f;
+            if (timingPoints[i][6] == 1)
+            {
+                elapsed = timingPoints[i][0];
+            }
+            ++i;
         }
+
+        barLines.push_back(std::make_unique<BarLine>());
+        barLines.back()->vx = calcVelocity();
+        barLines.back()->timing = (int) elapsed + blankPeriodMs + timingOffset;
+
+        elapsed += notesInterval_ * 4.f;
     }
 
     return barLines;
