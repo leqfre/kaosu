@@ -10,5 +10,5 @@ namespace
 
     constexpr int blankPeriodMs = 2000;
 
-    constexpr int timingOffset = 70;
+    constexpr int timingOffset = 0;
 }

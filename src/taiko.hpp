@@ -10,7 +10,9 @@
 enum HitEffectType
 {
     HE300,
+    HE300k,
     HE100,
+    HE100k,
     HE0
 };
 
@@ -25,7 +27,7 @@ public:
 
 private:
     void checkKeyInput();
-    void judge(const NoteType);
+    void judge(const NoteType, const bool);
 
     bool isTargetNoteElapsed() const;
 

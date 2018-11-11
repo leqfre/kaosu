@@ -136,29 +136,29 @@ void Taiko::checkKeyInput()
     if (gc_->getKey(KEY_INPUT_F) == 1 || donL)
     {
         playHitSound(Don);
-        judge(Don);
+        judge(Don, isAutoPlay);
     }
 
     if (gc_->getKey(KEY_INPUT_J) == 1 || donR)
     {
         playHitSound(Don);
-        judge(Don);
+        judge(Don, isAutoPlay);
     }
 
     if (gc_->getKey(KEY_INPUT_D) == 1 || katsuL)
     {
         playHitSound(Katsu);
-        judge(Katsu);
+        judge(Katsu, isAutoPlay);
     }
 
     if (gc_->getKey(KEY_INPUT_K) == 1 || katsuR)
     {
         playHitSound(Katsu);
-        judge(Katsu);
+        judge(Katsu, isAutoPlay);
     }
 }
 
-void Taiko::judge(const NoteType inputedNoteType)
+void Taiko::judge(const NoteType inputedNoteType, const bool isAutoPlay)
 {
     auto diff = std::abs(notes_[targetNoteIndex_]->timing - elapsed_);
 
@@ -180,15 +180,35 @@ void Taiko::judge(const NoteType inputedNoteType)
         return;
     }
 
+    auto isBig = ((targetNoteType == DonBig) || (targetNoteType == KatsuBig)
+        ) && ((gc_->getKey(KEY_INPUT_F) == 1 && gc_->getKey(KEY_INPUT_J) == 1)
+            || (gc_->getKey(KEY_INPUT_D) == 1 && gc_->getKey(KEY_INPUT_K) == 1)
+            || isAutoPlay
+        );
+
     if (diff < (perfectJudgeMs / 2))
     {
         ++combo_;
-        currentHitEffectType_ = HE300;
+        if (isBig)
+        {
+            currentHitEffectType_ = HE300k;
+        }
+        else
+        {
+            currentHitEffectType_ = HE300;
+        }
     }
     else if (diff < (goodJudgeMs / 2))
     {
         ++combo_;
-        currentHitEffectType_ = HE100;
+        if (isBig)
+        {
+            currentHitEffectType_ = HE100k;
+        }
+        else
+        {
+            currentHitEffectType_ = HE100;
+        }
     }
     else
     {
@@ -210,7 +230,7 @@ double Taiko::calcElapsed() const
 void Taiko::drawCombo() const
 {
     auto width = GetDrawFormatStringWidthToHandle(rl_->getFont(), "%d", combo_);
-    auto x = judgeCircleX / 2 - width;
+    auto x = judgeCircleX / 2 - width + 50;
     auto y = judgeCircleY + (noteBigSize - COMBO_FONT_SIZE) / 2;
     DrawFormatStringToHandle(x, y, GetColor(255, 255, 255), rl_->getFont(), "%d", combo_);
 }

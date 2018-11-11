@@ -3,7 +3,7 @@
 
 namespace
 {
-    constexpr int taikoNoteTypes = 4;
+    constexpr int taikoNoteTypes = 5;
 }
 
 class ResourceLoader

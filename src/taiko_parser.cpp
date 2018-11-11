@@ -1,4 +1,5 @@
 #include "taiko_parser.hpp"
+#include "DxLib.h"
 #include "taiko_common.hpp"
 
 TaikoParser::TaikoParser()
@@ -11,6 +12,8 @@ TaikoParser::~TaikoParser()
 
 std::vector<std::unique_ptr<Note>> TaikoParser::makeNotes(std::vector<std::vector<double>>& hitObjects, const std::vector<std::vector<double>>& timingPoints)
 {
+    bool isRandom = true;
+
     int timingPointsIndex = 0;
 
     beatmapHiSpeed_ = 1.f;
@@ -31,6 +34,18 @@ std::vector<std::unique_ptr<Note>> TaikoParser::makeNotes(std::vector<std::vecto
         notes[i]->velocity = calcVelocity();
         notes[i]->type = getNoteType(hitObjects[i]);
         notes[i]->timing = (int) hitObjects[i][2] + blankPeriodMs + timingOffset;
+
+        if (isRandom)
+        {
+            if (notes[i]->type == Don || notes[i]->type == Katsu)
+            {
+                notes[i]->type = (NoteType) (GetRand(1) + 1);
+            }
+            else
+            {
+                notes[i]->type = (NoteType) (GetRand(1) + 3);
+            }
+        }
     }
 
     return notes;

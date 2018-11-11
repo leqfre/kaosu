@@ -18,8 +18,10 @@ void ResourceLoader::load()
     taikoNoteImages_[3] = LoadGraph("./rsc/katsu_big.png");
 
     taikoHitEffectImages_[0] = LoadGraph("./rsc/taiko-hit300.png");
-    taikoHitEffectImages_[1] = LoadGraph("./rsc/taiko-hit100.png");
-    taikoHitEffectImages_[2] = LoadGraph("./rsc/taiko-hit0.png");
+    taikoHitEffectImages_[1] = LoadGraph("./rsc/taiko-hit300k.png");
+    taikoHitEffectImages_[2] = LoadGraph("./rsc/taiko-hit100.png");
+    taikoHitEffectImages_[3] = LoadGraph("./rsc/taiko-hit100k.png");
+    taikoHitEffectImages_[4] = LoadGraph("./rsc/taiko-hit0.png");
 
     judgeCircleImage_ = LoadGraph("./rsc/judge_circle.png");
 
